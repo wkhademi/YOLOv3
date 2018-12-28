@@ -73,6 +73,76 @@ def get_classes(classes_path):
     return classes
 
 
+def get_colors(classes):
+    """
+        Assign a color to each class which will be the color of the bounding box.
+
+        Args:
+            classes: A list of the classes used for classifcation
+
+        Returns:
+            colors: A list of rgb colors such that each class is assigned a bounding box color
+    """
+    colors = []
+    np.random.seed(0)
+
+    for idx in range(len(classes)):
+        r, g, b = tuple(np.random.randint(0, 255, 3))
+        colors.append((r, g, b))
+
+    return np.asarray(colors, dtype=np.int16)
+
+
+def draw_bounding_boxes(image, bboxes, classes, scores, class_names, colors):
+    """
+        Draw the bounding boxes and their corresponding label onto the image.
+
+        Args:
+            image: A numpy array of the image
+            bboxes: A list of tuples containing bounding box coordinates (xmin, ymin, xmax, ymax)
+            classes: A list of class ids (labels) to decide what color the bounding box is
+            scores: A list of confidence scores for the predictions
+            class_names: A list of classes, strings, that represent different objects
+            colors: A list of rgb colors for bounding boxes
+
+        Returns:
+            image: An image containing the bounding boxes and associated labels
+    """
+    height, width, _ = image.shape
+    font_face = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1
+    font_thickness = 2
+    font_color = (0, 0, 0)
+
+    for idx, bbox in enumerate(bboxes):
+        label = classes[idx]
+        score = scores[idx]
+        text = class_names[label] + '  ' + score
+        color = tuple(reversed(colors[label]))  # cv2 uses bgr rather than rgb
+
+        # correct predicted bounding box coordinate
+        xmin = min(0, int(math.round(bbox[0])))
+        ymin = min(0, int(math.round(bbox[1])))
+        xmax = max(height, int(math.round(bbox[2])))
+        ymax = max(width, int(math.round(bbox[3])))
+
+        # add bounding box
+        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 5)
+
+        # add label and score to top of bounding box
+        # Note: will break if ymin is at top of image or xmin is at right of image
+        label_size, _ = cv2.getTextSize(text, font_face, font_scale, font_thickness)
+        label_xmin = xmin
+        label_ymin = ymin - label_size[0] - 6
+        label_xmax = xmin + label_size[0] + 6
+        label_ymax = ymin
+
+        cv2.rectangle(image, (label_xmin, label_ymin), (label_xmax, label_ymax), color, cv2.CV_FILLED)
+        cv2.putText(image, text, (xmin + 3, ymin - 3), font_face, font_scale, font_color, font_thickness, cv2.LINE_AA)
+
+    return image
+
+
 class LoadData:
     """
         Iterator for loading images and annotations into numpy arrays.

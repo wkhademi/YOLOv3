@@ -2,7 +2,7 @@ import sys
 import argparse
 import numpy as np
 import tensorflow as tf
-from utils import config, get_anchors, get_classes, LoadData
+from utils import config, get_anchors, get_classes, get_colors, LoadData
 from prepare import PrepareData
 
 
@@ -10,12 +10,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='COCO')
     parser.add_argument('--prepdata', type=bool, default=False)
-    parser.add_argument('--pre_train', type=bool, default=False)
-    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--pretrain', type=bool, default=False)
+    parser.add_argument('--train', type=bool, default=False)
     conf = parser.parse_args()
 
-    if (conf.pre_train is True and conf.train is True):
-        print("Flags [--pre_train] and [--train] cannot be set to true at the same time.")
+    if (conf.pretrain is True and conf.train is True):
+        print("Flags [--pretrain] and [--train] cannot be set to true at the same time.")
         sys.exit()
 
     dataset_info = config(conf.data)
@@ -37,7 +37,12 @@ if __name__ == '__main__':
                 print("Finished preprocessing data.")
                 break
 
-    if (conf.pre_train is True):
+    # get info needed for predicting and drawing bounding boxes and object classifcation
+    anchors = get_anchors(dataset_info["anchor_path"])
+    classes = get_classes(dataset_info["class_path"])
+    colors = get_colors(classes)
+
+    if (conf.pretrain is True):
         pass
     elif (conf.train is True):
         datagen_iterator = LoadData(dataset_info, model_info)

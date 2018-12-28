@@ -71,6 +71,7 @@ class PrepareData:
             self.load_data(self.image_num, self.image_num + increment)
             self.resize_images(int(self.dataset_info["height"]), int(self.dataset_info["width"]))
             self.resize_bounding_boxes(self.image_num, self.image_num + increment)
+            self.save_images(self.image_num, self.image_num + increment)
             self.image_num += increment
         else:
             raise StopIteration
@@ -129,7 +130,7 @@ class PrepareData:
 
                 self.images[idx] = cv2.copyMakeBorder(self.images[idx], top, bottom, left, right, cv2.BORDER_CONSTANT, value=BLACK)
             else:
-                top, left = 0
+                top, left = (0, 0)
                 scaling_factor = 1
                 self.scales.append(scaling_factor)
                 self.vertical_shifts.append(top)
@@ -152,3 +153,32 @@ class PrepareData:
                 self.image_info[image_path][index][0]["ymin"] = int(np.round(bbox["ymin"] * scaling_factor)) + self.vertical_shifts[idx]
                 self.image_info[image_path][index][0]["ymax"] = int(np.round(bbox["ymax"] * scaling_factor)) + self.vertical_shifts[idx]
                 self.image_info[image_path][index][0]["xmax"] = int(np.round(bbox["xmax"] * scaling_factor)) + self.horizontal_shifts[idx]
+
+    def save_images(self, start, finish):
+        """
+            Save resized images back to dataset directory and save all the images info
+            to a separate file.
+        """
+        with open(self.dataset_info["data_path"], 'a') as bbox_id_file:
+            keys = self.image_info.keys()
+            for idx, image_path in enumerate(keys[start:finish]):
+                image = self.images[idx]
+                image_info = self.image_info[image_path]
+
+                # save resized image
+                cv2.imwrite(image_path, image)
+
+                # write the number of bounding boxes for the image to file
+                bbox_id_file.write(str(len(image_info)) + '\n')
+
+                # write image path to file
+                bbox_id_file.write(image_path + '\n')
+
+                # write bounding boxes and categories to a file
+                for index, bbox in enumerate(image_info):
+                    xmin = str(bbox[0]["xmin"])
+                    ymin = str(bbox[0]["ymin"])
+                    xmax = str(bbox[0]["xmax"])
+                    ymax = str(bbox[0]["ymax"])
+                    category_id = str(bbox[1])
+                    bbox_id_file.write(xmin + ',' + ymin +',' + xmax + ',' + ymax + ',' + category_id + '\n')
