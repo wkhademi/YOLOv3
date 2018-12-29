@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 from utils import config, get_anchors, get_classes, get_colors, LoadData
 from prepare import PrepareData
+from display import display_image, display_video
 
 
 if __name__ == '__main__':
@@ -12,6 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--prepdata', type=bool, default=False)
     parser.add_argument('--pretrain', type=bool, default=False)
     parser.add_argument('--train', type=bool, default=False)
+    parser.add_argument('--livefeed', type=bool, default=False)
     conf = parser.parse_args()
 
     if (conf.pretrain is True and conf.train is True):
@@ -46,5 +48,7 @@ if __name__ == '__main__':
         pass
     elif (conf.train is True):
         datagen_iterator = LoadData(dataset_info, model_info)
+    elif (conf.livefeed is True):
+        pass
     else:
         pass
