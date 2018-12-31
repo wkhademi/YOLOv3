@@ -2,9 +2,10 @@ import sys
 import argparse
 import numpy as np
 import tensorflow as tf
-from utils import config, get_anchors, get_classes, get_colors, LoadData
+from utils import config, get_anchors, get_classes, get_colors
 from prepare import PrepareData
 from display import display_image, display_video
+from train import Train
 
 
 if __name__ == '__main__':
@@ -44,11 +45,14 @@ if __name__ == '__main__':
     classes = get_classes(dataset_info["class_path"])
     colors = get_colors(classes)
 
+    # initializer trainer
+    trainer = Train(conf, anchors, classes, colors)
+
     if (conf.pretrain is True):
-        pass
+        trainer.pretrain()
     elif (conf.train is True):
-        datagen_iterator = LoadData(dataset_info, model_info)
+        trainer.train()
     elif (conf.livefeed is True):
-        pass
+        trainer.load_model()
     else:
         pass
