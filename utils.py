@@ -130,7 +130,7 @@ def draw_bounding_boxes(image, bboxes, classes, scores, class_names, colors):
         cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 5)
 
         # add label and score to top of bounding box
-        # Note: will break if ymin is at top of image or xmin is at right of image
+        # Note: may break if ymin is at top of image or xmin is at right of image
         label_size, _ = cv2.getTextSize(text, font_face, font_scale, font_thickness)
         label_xmin = xmin
         label_ymin = ymin - label_size[0] - 6
@@ -147,31 +147,86 @@ class LoadData:
     """
         Iterator for loading images and annotations into numpy arrays.
     """
-    def __init__(self, dataset_info, model_info):
-        self.dataset_info = dataset_info
-        self.model_info = model_info
-        self.annotations_path = os.path.expanduser(self.dataset_info["annotations_path"])
-        self.train_path = os.path.expanduser(self.dataset_info["train_path"])
-        self.epoch = 1
+    def __init__(self, image_path, data_path, num_images, height, width, max_epoch, batch_size):
+        self.image_path = image_path
+        self.data_path = data_path
+        self.num_images = num_images
+        self.height = height
+        self.width = width
+        self.max_epoch = max_epoch
+        self.batch_size = batch_size
+        self.max_batch = int(math.ceil(num_images / float(batch_size))
+        self.epoch = 0
+        self.batch = 0
+        self.file = open(data_path, "r")
 
     def __iterator__(self):
         return self
 
     def next(self):
-        if (self.epoch <= self.model_info["epochs"]):
-            pass
+        if (self.epoch <= self.max_epoch):
+            if(self.batch <= self.max_batch):
+                image_names, labels = self.read_file()
+                images = self.get_images(image_names)
+
+                return (images, labels)
+            else:
+                self.epoch += 1
+                self.batch = 0
+                self.file.seek(0)
         else:
+            self.file.close()
             raise StopIteration
 
-    def load_data(self):
+    def read_file(self):
         """
-            Load the images and annotations for a specific dataset.
-
-            Args:
-                dataset_info: Holds the paths to the images and annotations
+            Read the image paths and labels for bounding boxes and categories from a file.
 
             Returns:
-                images:
-                annotations:
+                image_names: A list of paths to image files
+                labels: A numpy array containing bounding boxes coordinates and category ids
         """
-        pass
+        image_names = []
+        labels = []
+
+        for _ in range(self.batch_size):
+            num_bboxes = int(self.file.readline())
+
+            # end of file was reached
+            if not num_bboxes:
+                break
+
+            image_name = self.file.readline()
+            image_names.append(image_name)
+
+            label = []
+
+            # get all the bounding boxes and labels corresponding to the image
+            for idx in range(num_bboxes):
+                line = self.file.readline()
+                data = [float(x) for x in line.split(',')]
+                label.append(data)
+
+            labels.append(label)
+
+        return image_names, labels
+
+    def get_images(self, image_names):
+        """
+            Get a batch of images from the image directory.
+
+            Args:
+                image_names: A list of paths to image files
+
+            Returns:
+                images: A numpy array containing a batch of images
+        """
+        images = []
+
+        for image_name in image_names:
+            image = cv2.imread(image_name)
+            images.append(image)
+
+        images = np.stack(images)
+
+        return images
