@@ -16,7 +16,7 @@ def display_video():
     ret = capture.set(3, 640)
     ret = capture.set(4, 480)
 
-    while(True):
+    while True:
         ret, frame = capture.read()
 
         # predict_bounding_boxes function currently not implemented...

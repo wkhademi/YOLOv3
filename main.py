@@ -45,7 +45,7 @@ if __name__ == '__main__':
     classes = get_classes(dataset_info["class_path"])
     colors = get_colors(classes)
 
-    # initializer trainer
+    # initialize trainer
     trainer = Train(conf, anchors, classes, colors)
 
     if (conf.pretrain is True):

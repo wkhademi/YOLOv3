@@ -130,7 +130,7 @@ def draw_bounding_boxes(image, bboxes, classes, scores, class_names, colors):
         cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 5)
 
         # add label and score to top of bounding box
-        # Note: may break if ymin is at top of image or xmin is at right of image
+        # NOTE: may break if ymin is at top of image or xmin is at right of image
         label_size, _ = cv2.getTextSize(text, font_face, font_scale, font_thickness)
         label_xmin = xmin
         label_ymin = ymin - label_size[0] - 6
@@ -165,7 +165,7 @@ class LoadData:
 
     def next(self):
         if (self.epoch <= self.max_epoch):
-            if(self.batch <= self.max_batch):
+            if (self.batch <= self.max_batch):
                 image_names, labels = self.read_file()
                 images = self.get_images(image_names)
 
@@ -201,6 +201,7 @@ class LoadData:
 
             label = []
 
+            # NOTE: Probably not proper formatting returned. NEED TO FIX...
             # get all the bounding boxes and labels corresponding to the image
             for idx in range(num_bboxes):
                 line = self.file.readline()

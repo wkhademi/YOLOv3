@@ -19,7 +19,7 @@ To preprocess the COCO dataset, and other datasets matching the COCO dataset for
 
 By running this command the original images and annotations of the COCO dataset will be parsed and processed so that the images are resized to 416x416 and a file is created containing the image names, bounding box coordinates, and categories of the bounding boxes.
 
-*Note:* Data only needs to be preprocessed one time. It is advised to run this command as soon as the images and annotations of the COCO data have first been installed.
+*Note:* Data only needs to be preprocessed one time. It is advised to run this command as soon as the images and annotations of the COCO data have first been downloaded.
 
 ## Pre-Trained Weights
 Pre-trained weights for the YOLOv3 model can be downloaded from the [YOLO Website](https://pjreddie.com/darknet/yolo/).  
