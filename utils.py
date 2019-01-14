@@ -93,6 +93,119 @@ def get_colors(classes):
     return np.asarray(colors, dtype=np.int16)
 
 
+def nms(bboxes, scores, max_boxes=25, iou_thresh=0.5):
+    """
+        Perform non-maximum suppression.
+
+        Arguments:
+            bboxes: YOLOv3 models predicted bounding boxes
+            scores: Confidence scores for each bounding box
+            max_boxes: Max number of bounding box for an image
+            iou_threshold: The overlap threshold of bounding boxes
+
+        Returns:
+            picked: The indices of the bounding boxes that weren't suppressed
+    """
+    # get (x, y) coordinates for bounding boxes
+    x1 = bboxes[:, 0]
+    y1 = bboxes[:, 1]
+    x2 = bboxes[:, 2]
+    y2 = bboxes[:, 3]
+
+    # calculate the area of each bounding box
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+
+    # sort indices of scores in descending order of score
+    order = scores.argsort()[::-1]
+
+    # suppress the boxes that have very small IoU with other boxes
+    picked = []
+    while (order.size > 0 and len(picked) < max_boxes):
+        idx = order[0]
+        picked.append(idx)
+
+        # get intersection coordinates to calculate IoU
+        xx1 = np.maximum(x1[idx], x1[1:])
+        yy1 = np.maximum(y1[idx], y1[1:])
+        xx2 = np.minimum(x2[idx], x2[1:])
+        yy2 = np.mimimum(y2[idx], y2[1:])
+
+        # calculate IoU
+        intersection = np.maximum(0., (xx2 - xx1 + 1)) * np.maximum(0., (yy2 - yy1 + 1))
+        union = area[idx] + area[1:] - intersection
+        iou = intersection / union
+
+        # find next bounding box that wasn't suppressed
+        index = np.where(iou <= iou_thresh)[0]
+        order = order[index + 1] # add 1 because of 0 index
+
+    return picked
+
+
+def bounding_box_nms(bboxes, scores, num_classes, max_boxes=25, score_thresh=0.5, iou_thresh=0.5):
+    """
+        Perform non-maximum suppression on bounding boxes to not have multiple
+        bounding boxes for the same object.
+
+        Arguments:
+            bboxes: YOLOv3 models predicted bounding boxes
+            scores: Confidence scores for each bounding box
+            num_classes: Number of classes in dataset
+            max_boxes: Max number of bounding box for an image
+            score_threshold: The necessary score that a bounding box needs to meet to be kept
+            iou_threshold: The overlap threshold of bounding boxes
+
+        Returns:
+            bboxes: Predicted bounding boxes that weren't suppressed
+            scores: Confidence scores of the bounding boxes that were kept
+            labels: The label associated with the bounding box
+    """
+    kept_bboxes, kept_scores, kept_labels = [], []
+
+    for idx in range(num_classes):
+        indices = np.where(scores[:, idx] >= score_thresh)
+
+        # only apply nms to bounding boxes that are above score threshold
+        nms_bboxes = bboxes[indices]
+        nms_scores = scores[:, idx][indices]
+
+        if not nms_bboxes:
+            continue
+
+        # get indices of bounding boxes that aren't suppressed by non-maximum suppression
+        indices = nms(nms_bboxes, nms_scores, max_boxes, iou_thresh)
+
+        kept_bboxes.append(nms_bboxes[indices])
+        kept_scores.append(nms_scores[indices])
+        kept_labels.append(np.ones(len(indices), dtype='int32') * idx)
+
+    if not kept_bboxes:
+        return None, None, None
+
+    # put data back into proper format
+    bboxes = np.concatenate(kept_bboxes, axis=0)
+    scores = np.concatenate(kept_scores, axis=0)
+    labels = np.concatenate(kept_labels, axis=0)
+
+    return bboxes, scores, labels
+
+
+def bounding_box_IoU(pred_bboxes, truth_bboxes):
+    """
+        Perform Intersection over Union with predicted bounding boxes and ground
+        truth bounding boxes to obtain a score of how well model places bounding
+        boxes around an object.
+
+        Arguments:
+            pred_bboxes: YOLOv3 models predicted bounding boxes
+            truth_bboxes: Ground truth bounding boxes
+
+        Returns:
+            iou: The Intersection over Union of the predicted bounding boxes and ground truth ones
+    """
+    return iou
+
+
 def draw_bounding_boxes(image, bboxes, classes, scores, class_names, colors):
     """
         Draw the bounding boxes and their corresponding label onto the image.

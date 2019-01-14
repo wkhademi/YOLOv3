@@ -53,7 +53,10 @@ def upsample(inputs,
     pass
 
 
-def bilinear_upsample_filter(ksize, factor, in_channels, out_channels):
+def bilinear_upsample_filter(ksize,
+                             factor,
+                             in_channels,
+                             out_channels):
     """
         Create a 2D bilinear kernel used to upsample.
 
