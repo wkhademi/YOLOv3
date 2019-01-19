@@ -203,6 +203,27 @@ def bounding_box_IoU(pred_bboxes, truth_bboxes):
         Returns:
             iou: The Intersection over Union of the predicted bounding boxes and ground truth ones
     """
+    # get (x,y) coordinates of predicted and ground truth bounding boxes
+    pred_x1, truth_x1 = pred_bboxes[:, 0], truth_bboxes[:, 0]
+    pred_y1, truth_y1 = pred_bboxes[:, 1], truth_bboxes[:, 1]
+    pred_x2, truth_x2 = pred_bboxes[:, 2], truth_bboxes[:, 2]
+    pred_y2, truth_y2 = pred_bboxes[:, 3], truth_bboxes[:, 3]
+
+    # get areas of the predicted and ground truth boxes
+    pred_area = (pred_x2 - pred_x1 + 1) * (pred_y2 - pred_y1 + 1)
+    truth_area = (truth_x2 - truth_x1 + 1) * (truth_y2 - truth_y1 + 1)
+
+    # get (x,y) coordinates needed to calculate intersection
+    xx1 = np.maximum(pred_x1, truth_x1)
+    yy1 = np.maximum(pred_y1, truth_y1)
+    xx2 = np.minimum(pred_x2, truth_x2)
+    yy2 = np.minimum(pred_y2, truth_y2)
+
+    # calculate IoU
+    intersection = np.maximum(0., (xx2 - xx1 + 1)) * np.maximum(0., (yy2 - yy1 + 1))
+    union = pred_area + truth_area - intersection
+    iou = intersection / union
+
     return iou
 
 
