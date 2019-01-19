@@ -93,6 +93,64 @@ def get_colors(classes):
     return np.asarray(colors, dtype=np.int16)
 
 
+def convert_to_xyxy(xywh):
+    """
+        Convert a bounding box with center point (x,y), width w, and height h to a
+        bounding box with top left coordinate (x1,y1) and bottom right coordinate (x2,y2).
+
+        Args:
+            xywh: A list of bounding box info containing x,y,width,height
+
+        Returns:
+            xyxy: A list of bounding box info containing x1,y1,x2,y2
+    """
+    x = xywh[:, 0]
+    y = xywh[:, 1]
+    w = xywh[:, 2]
+    h = xywh[:, 3]
+
+    # convert to (x,y) coordinates
+    x1 = x - w
+    y1 = y - h
+    x2 = x + w
+    y2 = y + h
+
+    xyxy = np.asarray([x1, y1, x2, y2])
+    xyxy = np.transpose(xyxy, (1, 0))
+
+    return xyxy
+
+
+def convert_to_xywh(xyxy):
+    """
+        Convert a bounding box with top left coordinate (x1,y1) and bottom right coordinate
+        (x2,y2) to a bounding box with center point (x,y), width w, and height h.
+
+        Args:
+            xyxy: A list of bounding box info containing x1,y1,x2,y2
+
+        Returns:
+            xywh: A list of bounding box info containing x,y,width,height
+    """
+    x1 = xyxy[:, 0]
+    y1 = xyxy[:, 1]
+    x2 = xyxy[:, 2]
+    y2 = xyxy[:, 3]
+
+    # get width and height from center of bounding box to edge
+    w = (x2 - x1) // 2
+    h = (y2 - y1) // 2
+
+    # get center point
+    x = x1 + w
+    y = y1 + h
+
+    xywh = np.asarray([x, y, w, h])
+    xywh = np.transpose(xywh, (1, 0))
+
+    return xywh
+
+
 def nms(bboxes, scores, max_boxes=25, iou_thresh=0.5):
     """
         Perform non-maximum suppression.
@@ -289,7 +347,7 @@ class LoadData:
         self.width = width
         self.max_epoch = max_epoch
         self.batch_size = batch_size
-        self.max_batch = int(math.ceil(num_images / float(batch_size))
+        self.max_batch = int(math.ceil(num_images / float(batch_size)))
         self.epoch = 0
         self.batch = 0
         self.file = open(data_path, "r")
