@@ -6,3 +6,6 @@ from ops import *
 class Darknet53:
     def __init__():
         pass
+
+    def build_model():
+        pass

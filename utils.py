@@ -351,6 +351,7 @@ class LoadData:
         self.epoch = 0
         self.batch = 0
         self.file = open(data_path, "r")
+        self.finished_epoch = False
 
     def __iterator__(self):
         return self
@@ -361,10 +362,16 @@ class LoadData:
                 image_names, labels = self.read_file()
                 images = self.get_images(image_names)
 
-                return (images, labels)
+                if (self.batch == self.max_batch):
+                    self.finished_epoch = True
+
+                self.batch += 1
+
+                return (images, labels, finished_epoch)
             else:
                 self.epoch += 1
                 self.batch = 0
+                self.finished_epoch = False
                 self.file.seek(0)
         else:
             self.file.close()
