@@ -2,6 +2,12 @@ import cv2
 
 
 def display_image(image):
+    """
+        Display an image.
+
+        Args:
+            image: A Numpy array representing an image
+    """
     cv2.imshow('image', image)
     cv2.waitKey(0)
 

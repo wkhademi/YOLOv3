@@ -48,6 +48,7 @@ if __name__ == '__main__':
     # initialize trainer
     trainer = Train(conf, anchors, classes, colors)
 
+    # NOTE: still need to finish this series of conditionals
     if (conf.pretrain is True):
         trainer.pretrain()
     elif (conf.train is True):

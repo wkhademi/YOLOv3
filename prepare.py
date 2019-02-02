@@ -79,6 +79,10 @@ class PrepareData:
     def load_data(self, start, finish):
         """
             Load the images from the dataset as a numpy array.
+
+            Args:
+                start: starting index in set of images
+                finish: ending index in set of images
         """
         images = []
         keys = self.image_info.keys()
@@ -91,6 +95,10 @@ class PrepareData:
     def resize_images(self, max_height, max_width):
         """
             Downsample all images to a specific max height and width.
+
+            Args:
+                max_height: desired output height of image
+                max_width: desired output width of image
         """
         self.scales = []
         self.horizontal_shifts = []
@@ -139,6 +147,10 @@ class PrepareData:
     def resize_bounding_boxes(self, start, finish):
         """
             Resize the labeled bounding boxes to match the downsampled images.
+
+            Args:
+                start: starting index in set of images
+                finish: ending index in set of images
         """
         keys = self.image_info.keys()
         for idx, image_path in enumerate(keys[start:finish]):
@@ -158,6 +170,10 @@ class PrepareData:
         """
             Save resized images back to dataset directory and save all the images info
             to a separate file.
+
+            Args:
+                start: starting index in set of images
+                finish: ending index in set of images
         """
         with open(self.dataset_info["data_path"], 'a') as bbox_id_file:
             keys = self.image_info.keys()
